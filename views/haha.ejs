@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+    <title>example web push</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link href="/manifest.json" rel="manifest"/>
+    <script src="/service-worker.js"></script>
+    <script>
+      const publicVapidKey = 'BJ7aAUUiBFLXQiOD4DSGnzx9ZmD10iGH0NBaSSpZ7rcU558-HGn8VIYbC0dH5XQ6q5daqa4rw4imyOLTrCL4bv4';
+
+      async function subscribe() {
+        await navigator.serviceWorker.register('service-worker.js', {
+          scope: '/'
+        });
+        navigator.serviceWorker.ready
+          .then((registration) => {
+            return registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
+            });
+          }).then(async (subscription) => {
+          fetch('/api/subscribe', {
+            method: 'POST',
+            body: JSON.stringify({subscription}),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }).then(async (response) => {
+            console.log(await response.json())
+          })
+        })
+      }
+
+      function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+
+        for (let i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+      }
+
+      function onSubscribe() {
+        console.log('@onSubscribe')
+        if(!window.Notification){
+          alert('Push notifications are not supported')
+          return
+        }
+        Notification.requestPermission().then((permission) => {
+          if (permission === 'granted') {
+            subscribe()
+          } else {
+            alert('Push notifications are not allowed.')
+          }
+        })
+      }
+
+      function onNotification() {
+        fetch('/api/notification', {
+          method: 'POST'
+        }).then(() => {
+          alert('Send PUSH notification after 5 seconds')
+        })
+      }
+    </script>
+</head>
+<body>
+<main>
+    <div>
+        <button onclick="onSubscribe()">Start</button>
+    </div>
+    <div>
+        <button onclick="onNotification()">Send Notification</button>
+    </div>
+</main>
+
+</body>
+</html>

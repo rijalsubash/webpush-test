@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>PWA Example</title>
+        <link rel="manifest" href="/manifest.json" />
+        <link
+            rel="icon"
+            href="https://en.wikipedia.org/static/favicon/wikipedia.ico"
+            type="image/x-icon"
+        />
+    </head>
+    <body>
+        <h1>Welcome to my PWA!</h1>
+        <button id="askPermission">Ask Permission</button>
+        <button id="sendNotification">Send Notification</button>
+
+        <script>
+            function requestPermission() {
+                Notification.requestPermission().then((permission) => {
+                    if (permission === "granted") {
+                      registerServiceWorker()
+                    } else {
+                        alert(permission + " looser");
+                    }
+                });
+            }
+            function registerServiceWorker() {
+                if ("serviceWorker" in navigator) {
+                    navigator.serviceWorker
+                        .register("/sw.js")
+                        .then((reg) => {
+                            console.log("Service Worker Registered", reg);
+
+                            reg.pushManager
+                                .getSubscription()
+                                .then((subscription) => {
+                                    if (subscription) {
+                                        window.subscription = subscription;
+                                        console.log("User is subscribed.");
+                                    } else {
+                                        console.log("User is not subscribed.");
+                                        reg.pushManager
+                                            .subscribe({
+                                                userVisibleOnly: true,
+                                                applicationServerKey:
+                                                    "BPf1QoUlX4Cjqc15wn4j7xUAfKVMZLKqp6cQYRnAwvky2wywBCZx0HAXnnB7pqoMtgkWygPgs5d8h5vpDfRMos8",
+                                            })
+                                            .then((newSubscription) => {
+                                                console.log(
+                                                    "User has been subscribed."
+                                                );
+                                                fetch("/subscribe", {
+                                                    method: "POST",
+                                                    headers: {
+                                                        "Content-Type":
+                                                            "application/json",
+                                                    },
+                                                    body: JSON.stringify(
+                                                        newSubscription
+                                                    ),
+                                                });
+                                            })
+                                            .catch((err) => {
+                                                console.error(
+                                                    "Failed to subscribe the user: ",
+                                                    err
+                                                );
+                                            });
+                                    }
+                                });
+                        })
+                        .catch((err) => {
+                            alert("Service Worker registration failed: ", err);
+                        });
+                } else{
+                  alert('Service worker not supported')
+                }
+            }
+
+            document
+                .getElementById("sendNotification")
+                .addEventListener("click", () => {
+                    if (window.subscription) {
+                        fetch("/subscribe", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(window.subscription),
+                        });
+                    } else {
+                        console.error("No subscription found.");
+                    }
+                });
+            document
+                .getElementById("askPermission")
+                .addEventListener("click", () => {
+                    requestPermission();
+                });
+        </script>
+    </body>
+</html>
