@@ -20,9 +20,13 @@
             function requestPermission() {
                 Notification.requestPermission().then((permission) => {
                     if (permission === "granted") {
-                      registerServiceWorker()
+                        registerServiceWorker();
                     } else {
-                        alert(permission + " looser");
+                        let par = document.createElement("p"); //creating the paragraph element
+                        let text = document.createTextNode("Permission denied");
+                        let breakField = document.createElement('br');
+                        document.body.appendChild(breakField);
+                        document.body.appendChild(par.appendChild(text));
                     }
                 });
             }
@@ -74,8 +78,8 @@
                         .catch((err) => {
                             alert("Service Worker registration failed: ", err);
                         });
-                } else{
-                  alert('Service worker not supported')
+                } else {
+                    alert("Service worker not supported");
                 }
             }
 

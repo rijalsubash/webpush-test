@@ -1,7 +1,6 @@
 {
     "scripts": {
         "start": "node index.js",
-        "build" : "npm run vercel",
         "vercel": "vercel deploy --prod"
     },
     "main": "index.js",

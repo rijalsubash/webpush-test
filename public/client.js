@@ -74,6 +74,10 @@ function requestNotificationPermission() {
   });
 }
 
+window.addEventListener('load', ()=> {
+  requestNotificationPermission()
+})
+
 function unsubscribeFromPushNotifications() {
   serviceWorkerRegistration.pushManager.getSubscription()
     .then(subscription => {
