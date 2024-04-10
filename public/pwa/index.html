@@ -14,12 +14,16 @@
     <body>
         <h1>Welcome to my PWA!</h1>
         <button id="askPermission">Ask Permission</button>
-        <button id="sendNotification">Send Notification</button>
+        <button id="sendNotification" disabled>Send Notification</button>
 
         <script>
+            window.addEventListener("load", ()=> {
+                requestPermission()
+            })
             function requestPermission() {
                 Notification.requestPermission().then((permission) => {
                     if (permission === "granted") {
+                        document.getElementById("sendNotification").removeAttribute("disabled")
                         registerServiceWorker();
                     } else {
                         let par = document.createElement("p"); //creating the paragraph element
